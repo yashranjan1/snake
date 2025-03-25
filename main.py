@@ -11,6 +11,7 @@ from constants import (
     SCREEN_WIDTH,
     WALL_SIZE,
 )
+from snake import Snake
 from wall import Wall
 
 
@@ -21,6 +22,7 @@ def main() -> None:
     running = True
 
     walls: List[Wall] = []
+    snake = Snake()
 
     for i in range(OFFSET_X, OFFSET_X + BOUND_WIDTH + 1, WALL_SIZE):
         top = Wall(i, OFFSET_Y, WALL_SIZE, pygame.Color("white"))
@@ -33,15 +35,19 @@ def main() -> None:
         walls.extend([left, right])
 
     while running:
-        clock.tick(60)
+        clock.tick(2)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
+        screen.fill("#000000")
+
         for wall in walls:
-            wall.update()
             wall.draw(screen)
+
+        snake.move()
+        snake.draw(screen)
 
         pygame.display.flip()
 
