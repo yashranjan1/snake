@@ -11,6 +11,7 @@ from constants import (
     SCREEN_WIDTH,
     WALL_SIZE,
 )
+from fruit import Fruit
 from snake import DirectionType, Snake
 from wall import Wall
 
@@ -39,6 +40,7 @@ def main() -> None:
 
     walls: List[Wall] = []
     snake = Snake()
+    fruit = Fruit()
     dt = 0
 
     for i in range(OFFSET_X, OFFSET_X + BOUND_WIDTH + 1, WALL_SIZE):
@@ -52,9 +54,11 @@ def main() -> None:
         walls.extend([left, right])
 
     while running:
+
         clock.tick(60)
         screen.fill("#000000")
         snake.draw(screen)
+        fruit.draw(screen)
 
         move_check(snake)
         dt = (dt + 1) % 30
@@ -68,6 +72,9 @@ def main() -> None:
 
         if dt == 0:
             snake.move()
+
+        if snake.hasCollidedWith(fruit):
+            fruit.respawn()
 
         pygame.display.flip()
 

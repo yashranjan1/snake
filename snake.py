@@ -38,6 +38,9 @@ class SnakePart:
         if self.__next:
             self.__next.draw(screen)
 
+    def hasCollidedWith(self, obj: Square):
+        return self.__current.hasCollidedWith(obj)
+
     def get_x(self):
         return self.__current.shape.x
 
@@ -88,6 +91,9 @@ class Snake(pygame.sprite.Sprite):
                 )
 
         self.__head.update(new_head_x, new_head_y)
+
+    def hasCollidedWith(self, obj: Square):
+        return self.__head.hasCollidedWith(obj)
 
     def draw(self, screen: pygame.SurfaceType):
         self.__head.draw(screen)
