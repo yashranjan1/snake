@@ -10,7 +10,7 @@ from square import ObjectType, Square
 class DirectionType(Enum):
     UP = 1
     RIGHT = 2
-    BOTTOM = 3
+    DOWN = 3
     LEFT = 4
 
 
@@ -53,7 +53,16 @@ class Snake(pygame.sprite.Sprite):
         self.__direction = DirectionType.RIGHT
 
     def change_direction(self, direction: DirectionType):
-        self.__direction = direction
+        if (
+            self.__direction == DirectionType.RIGHT
+            or self.__direction == DirectionType.LEFT
+        ) and (direction == DirectionType.UP or direction == DirectionType.DOWN):
+            self.__direction = direction
+        elif (
+            self.__direction == DirectionType.UP
+            or self.__direction == DirectionType.DOWN
+        ) and (direction == DirectionType.RIGHT or direction == DirectionType.LEFT):
+            self.__direction = direction
 
     def move(self):
         match (self.__direction):
@@ -67,7 +76,7 @@ class Snake(pygame.sprite.Sprite):
                     self.__head.get_x() - WALL_SIZE,
                     self.__head.get_y(),
                 )
-            case DirectionType.BOTTOM:
+            case DirectionType.DOWN:
                 new_head_x, new_head_y = (
                     self.__head.get_x(),
                     self.__head.get_y() + WALL_SIZE,
