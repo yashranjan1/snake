@@ -58,6 +58,14 @@ class SnakePart:
     def has_next(self):
         return True if self.__next is not None else False
 
+    def is_on(self, x: int, y: int) -> bool:
+        if self.__current.shape.x == x and self.__current.shape.y == y:
+            return True
+        elif self.__next:
+            self.__next.is_on(x, y)
+        else:
+            return False
+
 
 class Snake(pygame.sprite.Sprite):
     def __init__(self):
@@ -131,9 +139,8 @@ class Snake(pygame.sprite.Sprite):
         self.__tail.set_next(new_part)
         self.__tail = new_part
 
-    def print_snake(self):
-        curr = self.__head
-        print(curr)
-        while curr.has_next():
-            curr = curr.get_next()
-            print(curr)
+    def get_head(self):
+        return self.__head
+
+    def is_on(self, x: int, y: int) -> bool:
+        return self.__head.is_on(x, y)

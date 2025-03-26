@@ -87,7 +87,7 @@ def main() -> None:
             if snake.has_collided_with(fruit):
                 points += 10
                 snake.has_eaten_fruit()
-                fruit.respawn()
+                fruit.respawn(snake)
 
         pygame.display.flip()
 
