@@ -33,7 +33,9 @@ def move_check(snake: Snake):
 
 
 def main() -> None:
+    points = 0
     pygame.init()
+    pygame.display.set_caption("Snake")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     running = True
@@ -42,6 +44,8 @@ def main() -> None:
     snake = Snake()
     fruit = Fruit()
     dt = 0
+
+    font = pygame.font.Font("freesansbold.ttf", 32)
 
     for i in range(OFFSET_X, OFFSET_X + BOUND_WIDTH + 1, WALL_SIZE):
         top = Wall(i, OFFSET_Y, WALL_SIZE, pygame.Color("white"))
@@ -55,8 +59,16 @@ def main() -> None:
 
     while running:
 
+        text = font.render(f"Points: {points}", True, pygame.Color("red"))
+        rect = text.get_rect()
+        rect.center = (
+            SCREEN_WIDTH // 2,
+            (SCREEN_HEIGHT - BOUND_HEIGHT) // 4,
+        )
+
         clock.tick(60)
         screen.fill("#000000")
+        screen.blit(text, rect)
         snake.draw(screen)
         fruit.draw(screen)
 
@@ -72,9 +84,10 @@ def main() -> None:
 
         if dt == 0:
             snake.move()
-
-        if snake.hasCollidedWith(fruit):
-            fruit.respawn()
+            if snake.has_collided_with(fruit):
+                points += 10
+                snake.has_eaten_fruit()
+                fruit.respawn()
 
         pygame.display.flip()
 

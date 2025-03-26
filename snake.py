@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, Tuple
 
 import pygame
 
@@ -26,20 +26,22 @@ class SnakePart:
         self.__current: Square = Square(x, y, size, color, ObjectType.SNAKE)
         self.__next: Optional["SnakePart"] = next
 
-    def update(self, x: int, y: int):
+    def update(self, x: int, y: int, snake: "Snake"):
         next_x, next_y = self.get_x(), self.get_y()
         self.__current.shape.x = x
         self.__current.shape.y = y
         if self.__next:
-            self.__next.update(next_x, next_y)
+            self.__next.update(next_x, next_y, snake)
+        else:
+            snake.set_after_tail((next_x, next_y))
 
     def draw(self, screen: pygame.SurfaceType):
         self.__current.draw(screen)
         if self.__next:
             self.__next.draw(screen)
 
-    def hasCollidedWith(self, obj: Square):
-        return self.__current.hasCollidedWith(obj)
+    def has_collided_with(self, obj: Square):
+        return self.__current.has_collided_with(obj)
 
     def get_x(self):
         return self.__current.shape.x
@@ -47,13 +49,37 @@ class SnakePart:
     def get_y(self):
         return self.__current.shape.y
 
+    def get_next(self):
+        return self.__next
+
+    def set_next(self, next: "SnakePart"):
+        self.__next = next
+
+    def has_next(self):
+        return True if self.__next is not None else False
+
 
 class Snake(pygame.sprite.Sprite):
     def __init__(self):
-        self.__head = SnakePart(
-            SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, WALL_SIZE, pygame.Color("white")
+        next = SnakePart(
+            SCREEN_WIDTH // 2 - WALL_SIZE,
+            SCREEN_HEIGHT // 2,
+            WALL_SIZE,
+            pygame.Color("white"),
         )
+        self.__head = SnakePart(
+            SCREEN_WIDTH // 2,
+            SCREEN_HEIGHT // 2,
+            WALL_SIZE,
+            pygame.Color("white"),
+            next,
+        )
+        self.__tail = next
+        self.__after_tail: Tuple[int, int]
         self.__direction = DirectionType.RIGHT
+
+    def set_after_tail(self, new_after_tail: Tuple[int, int]):
+        self.__after_tail = new_after_tail
 
     def change_direction(self, direction: DirectionType):
         if (
@@ -90,10 +116,24 @@ class Snake(pygame.sprite.Sprite):
                     self.__head.get_y(),
                 )
 
-        self.__head.update(new_head_x, new_head_y)
+        self.__head.update(new_head_x, new_head_y, self)
 
-    def hasCollidedWith(self, obj: Square):
-        return self.__head.hasCollidedWith(obj)
+    def has_collided_with(self, obj: Square):
+        return self.__head.has_collided_with(obj)
 
     def draw(self, screen: pygame.SurfaceType):
         self.__head.draw(screen)
+
+    def has_eaten_fruit(self):
+        new_part = SnakePart(
+            self.__after_tail[0], self.__after_tail[1], WALL_SIZE, pygame.Color("white")
+        )
+        self.__tail.set_next(new_part)
+        self.__tail = new_part
+
+    def print_snake(self):
+        curr = self.__head
+        print(curr)
+        while curr.has_next():
+            curr = curr.get_next()
+            print(curr)

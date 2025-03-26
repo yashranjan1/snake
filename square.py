@@ -23,7 +23,7 @@ class Square:
     def draw(self, surface: pygame.SurfaceType) -> None:
         pygame.draw.rect(surface, self.color, self.shape)
 
-    def hasCollidedWith(self, square: "Square") -> bool:
+    def has_collided_with(self, square: "Square") -> bool:
         if self.shape.x == square.shape.x and self.shape.y == square.shape.y:
             return True
         return False
