@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pygame
 
 from constants import SCREEN_HEIGHT, SCREEN_WIDTH, WALL_SIZE
 from square import ObjectType, Square
+from wall import Wall
 
 
 class DirectionType(Enum):
@@ -128,6 +129,12 @@ class Snake(pygame.sprite.Sprite):
 
     def has_collided_with(self, obj: Square):
         return self.__head.has_collided_with(obj)
+
+    def has_collided_with_wall(self, walls: List[Wall]):
+        for wall in walls:
+            if self.has_collided_with(wall):
+                return True
+        return False
 
     def draw(self, screen: pygame.SurfaceType):
         self.__head.draw(screen)
