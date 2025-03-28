@@ -1,17 +1,11 @@
-from typing import List
+from typing import List, Optional, Tuple
 
 import pygame
 
-from constants import (
-    BOUND_HEIGHT,
-    BOUND_WIDTH,
-    OFFSET_X,
-    OFFSET_Y,
-    SCREEN_HEIGHT,
-    SCREEN_WIDTH,
-    WALL_SIZE,
-)
+from constants import (BOUND_HEIGHT, BOUND_WIDTH, OFFSET_X, OFFSET_Y,
+                       SCREEN_HEIGHT, SCREEN_WIDTH, WALL_SIZE)
 from fruit import Fruit
+from game_state import GameState
 from snake import DirectionType, Snake
 from wall import Wall
 
@@ -32,6 +26,25 @@ def move_check(snake: Snake):
         snake.change_direction(DirectionType.LEFT)
 
 
+def render_text(
+    txt: str,
+    size: int,
+    pos: Tuple[int, int],
+    color: str,
+    screen: pygame.SurfaceType,
+    bg_color: Optional[str] = None,
+) -> pygame.Rect:
+    font = pygame.font.Font("freesansbold.ttf", size)
+
+    text = font.render(txt, True, pygame.Color(color))
+    rect = text.get_rect()
+    rect.center = pos
+    if bg_color:
+        pygame.draw.rect(screen, pygame.Color(bg_color), rect)
+    screen.blit(text, rect)
+    return rect
+
+
 def main() -> None:
     points = 0
     pygame.init()
@@ -41,11 +54,7 @@ def main() -> None:
     running = True
 
     walls: List[Wall] = []
-    snake = Snake()
-    fruit = Fruit()
     dt = 0
-
-    font = pygame.font.Font("freesansbold.ttf", 32)
 
     for i in range(OFFSET_X, OFFSET_X + BOUND_WIDTH + 1, WALL_SIZE):
         top = Wall(i, OFFSET_Y, WALL_SIZE, pygame.Color("white"))
@@ -57,39 +66,81 @@ def main() -> None:
         right = Wall(OFFSET_X + BOUND_WIDTH, i, WALL_SIZE, pygame.Color("white"))
         walls.extend([left, right])
 
+    state = GameState.MENU
+    snake = Snake()
+    fruit = Fruit()
+
     while running:
-
-        text = font.render(f"Points: {points}", True, pygame.Color("red"))
-        rect = text.get_rect()
-        rect.center = (
-            SCREEN_WIDTH // 2,
-            (SCREEN_HEIGHT - BOUND_HEIGHT) // 4,
-        )
-
         clock.tick(60)
-        screen.fill("#000000")
-        screen.blit(text, rect)
-        snake.draw(screen)
-        fruit.draw(screen)
-
-        move_check(snake)
-        dt = (dt + 1) % 30
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        for wall in walls:
-            wall.draw(screen)
+        if state == GameState.MENU:
+            render_text(
+                "SNAKE", 96, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), "white", screen
+            )
+            start_button = render_text(
+                "Play",
+                54,
+                (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100),
+                "black",
+                screen,
+                "white",
+            )
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if start_button.collidepoint(pygame.mouse.get_pos()):
+                        state = GameState.ONGOING
 
-        if dt == 0:
-            snake.move()
-            if snake.has_collided_with(fruit):
-                points += 10
-                snake.has_eaten_fruit()
-                fruit.respawn(snake)
-            elif snake.has_collided_with_wall(walls):
-                break
+        elif state == GameState.LOST:
+            render_text(
+                "GAME OVER", 72, (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), "red", screen
+            )
+            start_button = render_text(
+                "Play Again",
+                54,
+                (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100),
+                "black",
+                screen,
+                "white",
+            )
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if start_button.collidepoint(pygame.mouse.get_pos()):
+                        state = GameState.ONGOING
+                        snake = Snake()
+                        points = 0
+                        fruit = Fruit()
+
+        elif state == GameState.ONGOING:
+            screen.fill("#000000")
+
+            render_text(
+                f"Points: {points}",
+                32,
+                (SCREEN_WIDTH // 2, (SCREEN_HEIGHT - BOUND_HEIGHT) // 4),
+                "white",
+                screen,
+            )
+
+            snake.draw(screen)
+            fruit.draw(screen)
+
+            move_check(snake)
+            dt = (dt + 1) % 30
+
+            for wall in walls:
+                wall.draw(screen)
+
+            if dt == 0:
+                snake.move()
+                if snake.has_collided_with(fruit):
+                    points += 10
+                    snake.has_eaten_fruit()
+                    fruit.respawn(snake)
+                elif snake.has_collided_with_wall(walls):
+                    state = GameState.LOST
 
         pygame.display.flip()
 
